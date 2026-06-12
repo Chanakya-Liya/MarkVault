@@ -8,27 +8,45 @@
   overflow: hidden;
 }
 
-.header {
+/* ── Tabs ──────────────────────────────────────── */
+.tabs {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 16px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.tab:hover  { color: var(--text); }
+.tabActive  { color: var(--accent); border-bottom-color: var(--accent); }
+.tabActiveQ { color: #d97706;       border-bottom-color: #d97706; }
 
-.count {
-  font-size: 11px;
+.tabCount {
+  font-size: 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 999px;
   color: var(--text-muted);
 }
+.tabCountQ {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: #d97706;
+}
 
+/* ── Empty state ───────────────────────────────── */
 .empty {
   display: flex;
   flex-direction: column;
@@ -42,6 +60,7 @@
   padding: 24px;
 }
 
+/* ── List ──────────────────────────────────────── */
 .list {
   list-style: none;
   overflow-y: auto;
@@ -52,6 +71,7 @@
   gap: 8px;
 }
 
+/* ── Note card ─────────────────────────────────── */
 .card {
   background: var(--surface2);
   border-radius: var(--radius);
@@ -62,6 +82,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 }
 .card:hover { background: var(--bg); }
 
@@ -69,6 +90,29 @@
 .border-green  { border-left-color: rgba(0, 200, 100, 0.8); }
 .border-blue   { border-left-color: rgba(59, 130, 246, 0.8); }
 .border-pink   { border-left-color: rgba(236, 72, 153, 0.8); }
+
+/* ── Question card ─────────────────────────────── */
+.questionCard {
+  border-left-color: rgba(217, 119, 6, 0.8);
+  padding-right: 36px;
+}
+
+.questionBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(217, 119, 6, 0.15);
+  border: 1.5px solid rgba(217, 119, 6, 0.6);
+  color: #d97706;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .quote {
   font-size: 12px;
@@ -84,6 +128,15 @@
   cursor: text;
 }
 .content:hover { color: var(--accent); }
+
+.emptyContent {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  cursor: text;
+  line-height: 1.5;
+}
+.emptyContent:hover { color: #d97706; }
 
 .editArea {
   width: 100%;
@@ -125,7 +178,7 @@
   animation: pulse-note 0.6s ease-out;
 }
 @keyframes pulse-note {
-  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  0%   { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0.4); }
+  70%  { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0); }
 }

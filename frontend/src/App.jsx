@@ -13,7 +13,6 @@ function EmptyState({ onUpload }) {
     if (fileList.length) onUpload(fileList)
     e.target.value = ''
   }
-
   return (
     <div className={styles.emptyState}>
       <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
@@ -55,15 +54,20 @@ export default function App() {
   const [noteCounts, setNoteCounts] = useState({ 1: 0, 2: 0 })
 
   const [panelUI, setPanelUI] = useState({
-    1: { tocOpen: false, notesOpen: false, searchOpen: false },
-    2: { tocOpen: false, notesOpen: false, searchOpen: false },
+    1: { tocOpen: false, notesOpen: false, searchOpen: false, dimMode: false, jumpMode: false },
+    2: { tocOpen: false, notesOpen: false, searchOpen: false, dimMode: false, jumpMode: false },
   })
+
+  // New reading features
+  const [focusMode, setFocusMode] = useState(false)
+  const [readingLock, setReadingLock] = useState(false)
+  const [panelAtBottom, setPanelAtBottom] = useState({ 1: false, 2: false })
+  const [checkpointPulse, setCheckpointPulse] = useState(false)
 
   // Resize state
   const [splitRatio, setSplitRatio] = useState(0.5)
   const [singlePanelWidth, setSinglePanelWidth] = useState(100)
   const panelsRef = useRef()
-  // Refs so drag handlers always read fresh values without needing deps
   const splitRatioRef = useRef(0.5)
   const singleWidthRef = useRef(100)
   splitRatioRef.current = splitRatio
@@ -71,7 +75,27 @@ export default function App() {
 
   useEffect(() => { fetchFiles() }, [fetchFiles])
 
+  // Escape to exit focus mode
+  useEffect(() => {
+    if (!focusMode) return
+    const handleKey = (e) => { if (e.key === 'Escape') setFocusMode(false) }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [focusMode])
+
+  // Section checkpoint pulse
+  const handleSectionComplete = useCallback(() => {
+    setCheckpointPulse(true)
+    setTimeout(() => setCheckpointPulse(false), 600)
+  }, [])
+
+  // Panel reached bottom (unlocks reading lock)
+  const handlePanelReachBottom = useCallback((panelId) => {
+    setPanelAtBottom(prev => ({ ...prev, [panelId]: true }))
+  }, [])
+
   const handleFileSelect = useCallback((fileId) => {
+    setPanelAtBottom(prev => ({ ...prev, [activePanel]: false }))
     if (splitView) {
       if (activePanel === 1) setPanel1FileId(fileId)
       else setPanel2FileId(fileId)
@@ -95,7 +119,7 @@ export default function App() {
       if (v) {
         setPanel2FileId(null)
         setActivePanel(1)
-        setPanelUI(prev => ({ ...prev, 2: { tocOpen: false, notesOpen: false, searchOpen: false } }))
+        setPanelUI(prev => ({ ...prev, 2: { tocOpen: false, notesOpen: false, searchOpen: false, dimMode: false, jumpMode: false } }))
       }
       return !v
     })
@@ -126,9 +150,7 @@ export default function App() {
         setSplitRatio(Math.min(0.85, Math.max(0.15, startRatio + delta / containerWidth)))
       } else {
         const deltaPercent = (delta / containerWidth) * 100
-        const next = side === 'right'
-          ? startWidth + deltaPercent
-          : startWidth - deltaPercent
+        const next = side === 'right' ? startWidth + deltaPercent : startWidth - deltaPercent
         setSinglePanelWidth(Math.min(100, Math.max(20, next)))
       }
     }
@@ -148,11 +170,12 @@ export default function App() {
 
   const activePanelFileId = activePanel === 1 ? panel1FileId : panel2FileId
   const activeFile = files.find(f => f.id === activePanelFileId)
+  const sidebarLocked = readingLock && !!activePanelFileId && !panelAtBottom[activePanel]
 
   return (
     <div className={styles.app}>
       <div className={styles.progressBar}>
-        <div className={styles.progressFill} style={{ width: `${readingProgress}%` }} />
+        <div className={`${styles.progressFill} ${checkpointPulse ? styles.checkpoint : ''}`} style={{ width: `${readingProgress}%` }} />
       </div>
 
       <Topbar
@@ -174,17 +197,26 @@ export default function App() {
         onToggleSearch={() => toggleActiveUI('searchOpen')}
         noteCount={noteCounts[activePanel]}
         hasFile={!!activePanelFileId}
+        focusMode={focusMode}
+        onToggleFocus={() => setFocusMode(f => !f)}
+        readingLock={readingLock}
+        onToggleLock={() => setReadingLock(l => !l)}
+        dimMode={panelUI[activePanel].dimMode}
+        onToggleDim={() => toggleActiveUI('dimMode')}
+        jumpMode={panelUI[activePanel].jumpMode}
+        onToggleJump={() => toggleActiveUI('jumpMode')}
       />
 
       <div className={styles.body}>
         <Sidebar
-          open={sidebarOpen}
+          open={sidebarOpen && !focusMode}
           files={files}
           activeFileId={activePanelFileId}
           onFileSelect={handleFileSelect}
           onFileDelete={handleFileDelete}
           onUpload={handleUpload}
           showToast={showToast}
+          locked={sidebarLocked}
         />
 
         <main className={styles.main}>
@@ -193,18 +225,13 @@ export default function App() {
           ) : (
             <div ref={panelsRef} className={styles.panels}>
               {!splitView ? (
-                <div
-                  className={styles.singleWrapper}
-                  style={{ width: `${singlePanelWidth}%` }}
-                >
-                  <div
-                    className={`${styles.resizeHandle} ${styles.handleLeft}`}
-                    onMouseDown={e => handleResizeStart(e, 'single', 'left')}
-                  />
+                <div className={styles.singleWrapper} style={{ width: `${singlePanelWidth}%` }}>
+                  <div className={`${styles.resizeHandle} ${styles.handleLeft}`} onMouseDown={e => handleResizeStart(e, 'single', 'left')} />
                   <ViewerPanel
                     panelId={1}
                     fileId={panel1FileId}
                     isActive={activePanel === 1}
+                    isSinglePanel={true}
                     onFocus={() => setActivePanel(1)}
                     onClose={() => setPanel1FileId(null)}
                     onScrollProgress={setReadingProgress}
@@ -216,11 +243,13 @@ export default function App() {
                     onSetSearchOpen={(v) => setPanelUIKey(1, 'searchOpen', v)}
                     onNoteCountChange={(count) => setNoteCounts(prev => ({ ...prev, 1: count }))}
                     showToast={showToast}
+                    dimMode={panelUI[1].dimMode}
+                    jumpMode={panelUI[1].jumpMode}
+                    focusMode={focusMode}
+                    onReachBottom={() => handlePanelReachBottom(1)}
+                    onSectionComplete={handleSectionComplete}
                   />
-                  <div
-                    className={`${styles.resizeHandle} ${styles.handleRight}`}
-                    onMouseDown={e => handleResizeStart(e, 'single', 'right')}
-                  />
+                  <div className={`${styles.resizeHandle} ${styles.handleRight}`} onMouseDown={e => handleResizeStart(e, 'single', 'right')} />
                 </div>
               ) : (
                 <>
@@ -229,6 +258,7 @@ export default function App() {
                       panelId={1}
                       fileId={panel1FileId}
                       isActive={activePanel === 1}
+                      isSinglePanel={false}
                       onFocus={() => setActivePanel(1)}
                       onClose={() => setPanel1FileId(null)}
                       onScrollProgress={setReadingProgress}
@@ -240,17 +270,20 @@ export default function App() {
                       onSetSearchOpen={(v) => setPanelUIKey(1, 'searchOpen', v)}
                       onNoteCountChange={(count) => setNoteCounts(prev => ({ ...prev, 1: count }))}
                       showToast={showToast}
+                      dimMode={panelUI[1].dimMode}
+                      jumpMode={panelUI[1].jumpMode}
+                      focusMode={focusMode}
+                      onReachBottom={() => handlePanelReachBottom(1)}
+                      onSectionComplete={handleSectionComplete}
                     />
                   </div>
-                  <div
-                    className={styles.splitDivider}
-                    onMouseDown={e => handleResizeStart(e, 'split')}
-                  />
+                  <div className={styles.splitDivider} onMouseDown={e => handleResizeStart(e, 'split')} />
                   <div style={{ flex: 1 - splitRatio, minWidth: 0, overflow: 'hidden', height: '100%' }}>
                     <ViewerPanel
                       panelId={2}
                       fileId={panel2FileId}
                       isActive={activePanel === 2}
+                      isSinglePanel={false}
                       onFocus={() => setActivePanel(2)}
                       onClose={() => setPanel2FileId(null)}
                       onScrollProgress={setReadingProgress}
@@ -262,6 +295,11 @@ export default function App() {
                       onSetSearchOpen={(v) => setPanelUIKey(2, 'searchOpen', v)}
                       onNoteCountChange={(count) => setNoteCounts(prev => ({ ...prev, 2: count }))}
                       showToast={showToast}
+                      dimMode={panelUI[2].dimMode}
+                      jumpMode={panelUI[2].jumpMode}
+                      focusMode={focusMode}
+                      onReachBottom={() => handlePanelReachBottom(2)}
+                      onSectionComplete={handleSectionComplete}
                     />
                   </div>
                 </>
@@ -270,6 +308,17 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Focus mode exit — floating button, also dismissed by Escape */}
+      {focusMode && (
+        <button className={styles.focusExitBtn} onClick={() => setFocusMode(false)} title="Exit focus mode (Esc)">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <circle cx="6.5" cy="6.5" r="5.5"/>
+            <path d="M4 4l5 5M9 4L4 9" strokeLinecap="round"/>
+          </svg>
+          Exit focus
+        </button>
+      )}
 
       <Toast toasts={toasts} />
     </div>

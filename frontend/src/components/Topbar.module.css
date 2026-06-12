@@ -48,6 +48,19 @@
 .iconBtn:hover { background: var(--surface2); color: var(--text); }
 .iconBtn.active { background: var(--surface2); color: var(--accent); }
 
+.sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+.topbarHidden {
+  pointer-events: none;
+  opacity: 0;
+}
+
 .badge {
   position: absolute;
   top: 3px;

@@ -55,6 +55,8 @@ export default function MarkdownRenderer({
   currentMatchIndex,
   scrollContainerRef,
   onRendered,
+  wordCount,
+  readTime,
 }) {
   const containerRef = useRef()
   const [html, setHtml] = useState('')
@@ -106,11 +108,17 @@ export default function MarkdownRenderer({
     if (!noteMarkRef.current) noteMarkRef.current = new Mark(containerRef.current)
     const marker = noteMarkRef.current
 
-    marker.unmark({ className: 'note-highlight', done: () => {
+    // 'mv-note' is shared by both note-highlight and question-highlight,
+    // letting us unmark both types in one call without touching search-highlight
+    marker.unmark({ className: 'mv-note', done: () => {
       if (!notesOpen || !notes.length) return
       notes.forEach(note => {
+        const isQuestion = note.type === 'question'
+        const className = isQuestion
+          ? 'mv-note question-highlight'
+          : `mv-note note-highlight note-color-${note.color}`
         marker.mark(note.selected_text, {
-          className: `note-highlight note-color-${note.color}`,
+          className,
           accuracy: { value: 'partially', limiters: [',', '.', '!', '?', ';', ':', ' ', '\n'] },
           separateWordSearch: false,
           exclude: ['.heading-anchor', '.copy-btn'],
@@ -167,7 +175,7 @@ export default function MarkdownRenderer({
     if (!container) return
 
     const handleClick = (e) => {
-      const mark = e.target.closest('.note-highlight')
+      const mark = e.target.closest('[data-note-id]')
       if (mark?.dataset.noteId) {
         onNoteClick(mark.dataset.noteId)
       }
@@ -183,7 +191,7 @@ export default function MarkdownRenderer({
     if (!container) return
 
     const handleMouseOver = (e) => {
-      const mark = e.target.closest('.note-highlight')
+      const mark = e.target.closest('[data-note-id]')
       const noteId = mark?.dataset.noteId ?? null
 
       if (noteId === lastHoveredNoteIdRef.current) return
@@ -295,6 +303,17 @@ export default function MarkdownRenderer({
 
   return (
     <div className={styles.wrapper}>
+      {wordCount > 0 && (
+        <div className={styles.readingMeta}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ flexShrink: 0 }}>
+            <circle cx="6.5" cy="6.5" r="5.5"/>
+            <path d="M6.5 3.5v3.5l2.5 1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          ~{readTime} min read
+          <span className={styles.readingMetaDot}>·</span>
+          {wordCount.toLocaleString()} words
+        </div>
+      )}
       <div
         ref={containerRef}
         className="markdown-body"

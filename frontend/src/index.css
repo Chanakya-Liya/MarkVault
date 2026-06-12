@@ -81,9 +81,26 @@ input, textarea {
 }
 
 .markdown-body h1 { font-size: 2em; }
-.markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
 .markdown-body h3 { font-size: 1.25em; }
 .markdown-body h4 { font-size: 1.05em; }
+
+/* Clear section divider for H2 */
+.markdown-body h2 {
+  font-size: 1.5em;
+  margin-top: 3.5em;
+  padding-top: 1.6em;
+  border-top: 1.5px solid var(--border);
+}
+.markdown-body h2::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin-bottom: 0.8em;
+  opacity: 0.75;
+}
 
 .markdown-body .heading-anchor {
   opacity: 0;
@@ -203,6 +220,15 @@ input, textarea {
 .note-color-green  { background: rgba(0, 200, 100, 0.25); }
 .note-color-blue   { background: rgba(59, 130, 246, 0.25); }
 .note-color-pink   { background: rgba(236, 72, 153, 0.25); }
+
+.question-highlight {
+  background: rgba(217, 119, 6, 0.15);
+  border-bottom: 2px dashed rgba(217, 119, 6, 0.8);
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0 2px;
+  transition: filter 0.15s;
+}
 
 .note-highlight-hover { filter: brightness(0.85) saturate(1.4); }
 .note-highlight-active {

@@ -32,4 +32,7 @@ db.exec(`
   );
 `)
 
+// Migrations — safe to run on every start
+try { db.exec(`ALTER TABLE inline_notes ADD COLUMN type TEXT NOT NULL DEFAULT 'note'`) } catch {}
+
 module.exports = db

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { formatRelativeDate, formatFileSize } from '../utils/format'
 import styles from './Sidebar.module.css'
 
-export default function Sidebar({ open, files, activeFileId, onFileSelect, onFileDelete, onUpload, showToast }) {
+export default function Sidebar({ open, files, activeFileId, onFileSelect, onFileDelete, onUpload, showToast, locked }) {
   const [search, setSearch] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef()
@@ -72,18 +72,30 @@ export default function Sidebar({ open, files, activeFileId, onFileSelect, onFil
         )}
       </div>
 
-      <ul className={styles.fileList}>
-        {filtered.length === 0 && (
-          <li className={styles.noResults}>
-            {search ? 'No matching files' : 'No files yet'}
-          </li>
+      <div className={styles.listWrap}>
+        {locked && (
+          <div className={styles.lockOverlay}>
+            <span className={styles.lockMsg}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <rect x="2" y="5" width="7" height="5" rx="1"/>
+                <path d="M3.5 5V3.5a2 2 0 0 1 4 0V5" strokeLinecap="round"/>
+              </svg>
+              Scroll to bottom to unlock
+            </span>
+          </div>
         )}
-        {filtered.map(file => (
-          <li
-            key={file.id}
-            className={`${styles.fileItem} ${file.id === activeFileId ? styles.active : ''}`}
-            onClick={() => onFileSelect(file.id)}
-          >
+        <ul className={`${styles.fileList} ${locked ? styles.fileListLocked : ''}`}>
+          {filtered.length === 0 && (
+            <li className={styles.noResults}>
+              {search ? 'No matching files' : 'No files yet'}
+            </li>
+          )}
+          {filtered.map(file => (
+            <li
+              key={file.id}
+              className={`${styles.fileItem} ${file.id === activeFileId ? styles.active : ''}`}
+              onClick={() => !locked && onFileSelect(file.id)}
+            >
             <div className={styles.fileInfo}>
               <span className={styles.fileName} title={file.name}>{file.name}</span>
               <span className={styles.fileMeta}>
@@ -101,8 +113,9 @@ export default function Sidebar({ open, files, activeFileId, onFileSelect, onFil
               </svg>
             </button>
           </li>
-        ))}
-      </ul>
+            ))}
+        </ul>
+      </div>
 
       <div className={styles.footer}>
         <span>{files.length} file{files.length !== 1 ? 's' : ''}</span>

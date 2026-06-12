@@ -70,6 +70,41 @@
 .blue   { background: rgba(59, 130, 246, 0.6); }
 .pink   { background: rgba(236, 72, 153, 0.6); }
 
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 2px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.questionChip {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.1s, color 0.1s, background 0.1s, transform 0.1s;
+  flex-shrink: 0;
+}
+.questionChip:hover { border-color: #d97706; color: #d97706; transform: scale(1.15); }
+.questionSelected {
+  border-color: #d97706 !important;
+  background: rgba(217, 119, 6, 0.15);
+  color: #d97706 !important;
+  transform: scale(1.15);
+}
+
+.submitQuestion { background: #d97706 !important; }
+.submitQuestion:hover:not(:disabled) { background: #b45309 !important; }
+
 .actions {
   display: flex;
   gap: 6px;
