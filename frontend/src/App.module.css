@@ -1,0 +1,133 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  background: transparent;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  margin-top: 48px;
+}
+
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panels {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  justify-content: center;
+  align-items: stretch;
+}
+
+/* Single panel — centered wrapper with edge resize handles */
+.singleWrapper {
+  position: relative;
+  height: 100%;
+  min-width: 200px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 20;
+  cursor: col-resize;
+}
+.handleLeft  { left: 0; }
+.handleRight { right: 0; }
+
+.resizeHandle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+  opacity: 0.6;
+  transition: background 0.15s, opacity 0.15s;
+}
+.handleLeft::before  { right: 0; }
+.handleRight::before { left: 0; }
+
+.resizeHandle:hover::before {
+  background: var(--accent);
+  opacity: 1;
+}
+
+/* Split panel divider */
+.splitDivider {
+  flex-shrink: 0;
+  width: 4px;
+  background: var(--border);
+  cursor: col-resize;
+  transition: background 0.15s;
+  position: relative;
+}
+.splitDivider:hover { background: var(--accent); }
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 40px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  margin-top: 8px;
+}
+
+.emptyHint {
+  font-size: 13px;
+}
+
+.uploadBtn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.uploadBtn:hover { background: var(--accent-hover); }

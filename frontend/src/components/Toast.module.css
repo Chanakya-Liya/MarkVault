@@ -1,0 +1,37 @@
+.container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  animation: slideIn 0.2s ease-out;
+  max-width: 320px;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.success { background: #166534; color: #dcfce7; }
+.info    { background: #1e40af; color: #dbeafe; }
+.error   { background: #991b1b; color: #fee2e2; }
+
+.icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
