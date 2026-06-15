@@ -45,6 +45,37 @@
 .tooltip:hover { background: var(--accent); }
 .tooltip:hover::after { border-top-color: var(--accent); }
 
+.termTooltip {
+  position: fixed;
+  z-index: 165;
+  max-width: 320px;
+  min-width: 140px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 12px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  transform: translateX(-50%) translateY(calc(-100% - 10px));
+  word-break: break-word;
+}
+
+.termTooltipLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+
+.termTooltipDef {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
 .noteTooltip {
   position: fixed;
   z-index: 160;

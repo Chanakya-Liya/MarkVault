@@ -5,7 +5,7 @@ const db = require('../db')
 const router = express.Router()
 
 const VALID_COLORS = ['yellow', 'green', 'blue', 'pink']
-const VALID_TYPES  = ['note', 'question']
+const VALID_TYPES  = ['note', 'question', 'highlight']
 
 router.get('/files/:id/notes', (req, res) => {
   try {

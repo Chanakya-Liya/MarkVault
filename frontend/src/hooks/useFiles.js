@@ -58,5 +58,26 @@ export function useFiles(showToast) {
     }
   }, [showToast])
 
-  return { files, fetchFiles, uploadFiles, removeFile }
+  const reorderFiles = useCallback(async (ids) => {
+    // Optimistic update
+    setFiles(prev => ids.map(id => prev.find(f => f.id === id)).filter(Boolean))
+    try {
+      await filesApi.reorderFiles(ids)
+    } catch {
+      showToast('Failed to save order', 'error')
+      await fetchFiles()
+    }
+  }, [fetchFiles, showToast])
+
+  const renameFile = useCallback(async (id, name) => {
+    try {
+      const updated = await filesApi.renameFile(id, name)
+      setFiles(prev => prev.map(f => f.id === id ? { ...f, name: updated.name } : f))
+      showToast('File renamed', 'success')
+    } catch {
+      showToast('Rename failed', 'error')
+    }
+  }, [showToast])
+
+  return { files, fetchFiles, uploadFiles, removeFile, reorderFiles, renameFile }
 }

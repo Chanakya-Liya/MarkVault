@@ -186,6 +186,29 @@
   font-size: 13px;
 }
 
+/* Animated wrappers for inline sidebars */
+.tocWrap {
+  display: flex;
+  flex-direction: column;
+  width: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.22s ease;
+  min-height: 0;
+}
+.tocWrapOpen { width: 220px; }
+
+.notesWrap {
+  display: flex;
+  flex-direction: column;
+  width: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.22s ease;
+  min-height: 0;
+}
+.notesWrapOpen { width: 320px; }
+
 /* Floating sidebars — rendered outside .body, positioned relative to .panel */
 .floatLeft {
   position: absolute;
@@ -195,6 +218,10 @@
   z-index: 15;
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .floatRight {
@@ -205,6 +232,16 @@
   z-index: 15;
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.floatVisible {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(0);
 }
 
 .emptyPanel {

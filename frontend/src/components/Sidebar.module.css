@@ -141,6 +141,8 @@
 .fileItem:hover { background: var(--surface2); }
 .fileItem.active { background: rgba(59, 130, 246, 0.1); }
 .fileItem.active .fileName { color: var(--accent); }
+.fileItem.dragging { opacity: 0.35; }
+.fileItem.dragOver { background: rgba(59, 130, 246, 0.12); box-shadow: inset 0 2px 0 var(--accent); }
 
 .fileInfo {
   flex: 1;
@@ -162,6 +164,41 @@
 .fileMeta {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.dragHandle {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  opacity: 0;
+  cursor: grab;
+  padding: 2px 1px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.1s;
+}
+.fileItem:hover .dragHandle { opacity: 1; }
+
+.renameBtn {
+  opacity: 0;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: opacity 0.1s, color 0.1s;
+}
+.fileItem:hover .renameBtn { opacity: 1; }
+.renameBtn:hover { color: var(--accent); background: rgba(59, 130, 246, 0.1); }
+
+.renameInput {
+  width: 100%;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 1px 5px;
+  outline: none;
 }
 
 .deleteBtn {

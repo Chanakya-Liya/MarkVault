@@ -43,7 +43,7 @@ export default function App() {
   }, [])
 
   const { themeId, allThemes, setTheme, addCustomTheme, deleteCustomTheme } = useTheme()
-  const { files, fetchFiles, uploadFiles, removeFile } = useFiles(showToast)
+  const { files, fetchFiles, uploadFiles, removeFile, reorderFiles, renameFile } = useFiles(showToast)
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [splitView, setSplitView] = useState(false)
@@ -214,6 +214,8 @@ export default function App() {
           activeFileId={activePanelFileId}
           onFileSelect={handleFileSelect}
           onFileDelete={handleFileDelete}
+          onFileReorder={reorderFiles}
+          onFileRename={renameFile}
           onUpload={handleUpload}
           showToast={showToast}
           locked={sidebarLocked}

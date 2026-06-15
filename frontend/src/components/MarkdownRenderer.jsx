@@ -49,6 +49,7 @@ export default function MarkdownRenderer({
   onNoteClick,
   onNoteHover,
   notesOpen,
+  notesTab,
   searchQuery,
   searchVersion,
   onSearchMatches,
@@ -57,16 +58,20 @@ export default function MarkdownRenderer({
   onRendered,
   wordCount,
   readTime,
+  terms,
+  onAddTerm,
 }) {
   const containerRef = useRef()
   const [html, setHtml] = useState('')
   const [tooltip, setTooltip] = useState(null)
   const [popover, setPopover] = useState(null)
   const [noteHoverTooltip, setNoteHoverTooltip] = useState(null)
+  const [termTooltip, setTermTooltip] = useState(null)
   const [searchScrollKey, setSearchScrollKey] = useState(0)
   const lastHoveredNoteIdRef = useRef(null)
   const noteMarkRef = useRef(null)
   const searchMarkRef = useRef(null)
+  const termMarkRef = useRef(null)
   const matchEls = useRef([])
 
   // Render markdown
@@ -111,22 +116,78 @@ export default function MarkdownRenderer({
     // 'mv-note' is shared by both note-highlight and question-highlight,
     // letting us unmark both types in one call without touching search-highlight
     marker.unmark({ className: 'mv-note', done: () => {
-      if (!notesOpen || !notes.length) return
-      notes.forEach(note => {
-        const isQuestion = note.type === 'question'
-        const className = isQuestion
+      if (!notesOpen) return
+      const visibleNotes = notes.filter(n => {
+        const t = n.type || 'note'
+        if (notesTab === 'highlights') return t === 'highlight'
+        if (notesTab === 'questions')  return t === 'question'
+        return t === 'note'
+      })
+      visibleNotes.forEach(note => {
+        const t = note.type || 'note'
+        const className = t === 'question'
           ? 'mv-note question-highlight'
-          : `mv-note note-highlight note-color-${note.color}`
+          : t === 'highlight'
+          ? `mv-note highlight-mark highlight-color-${note.color || 'yellow'}`
+          : `mv-note note-highlight note-color-${note.color || 'yellow'}`
         marker.mark(note.selected_text, {
           className,
           accuracy: { value: 'partially', limiters: [',', '.', '!', '?', ';', ':', ' ', '\n'] },
           separateWordSearch: false,
+          acrossElements: true,
           exclude: ['.heading-anchor', '.copy-btn'],
-          each: (el) => { el.dataset.noteId = note.id },
+          each: (el) => { el.dataset.noteId = String(note.id) },
         })
       })
     }})
-  }, [html, notes, notesOpen])
+  }, [html, notes, notesOpen, notesTab])
+
+  // Apply term highlights — word-boundary matching, standalone occurrences only
+  useEffect(() => {
+    if (!containerRef.current) return
+    if (!termMarkRef.current) termMarkRef.current = new Mark(containerRef.current)
+    const marker = termMarkRef.current
+
+    marker.unmark({ className: 'term-highlight', done: () => {
+      if (!terms?.length) return
+      terms.forEach(termDef => {
+        const escaped = termDef.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        // Lookbehind/lookahead ensure the term isn't part of a larger word
+        const regex = new RegExp(`(?<![a-zA-Z0-9_\\u00C0-\\u024F])${escaped}(?![a-zA-Z0-9_\\u00C0-\\u024F])`, 'gi')
+        marker.markRegExp(regex, {
+          className: 'term-highlight',
+          exclude: ['.heading-anchor', '.copy-btn', '.note-highlight', '.question-highlight'],
+          each: (el) => {
+            el.dataset.termId = termDef.id
+            el.dataset.termDef = termDef.definition
+            el.dataset.termText = termDef.term
+          },
+        })
+      })
+    }})
+  }, [html, terms])
+
+  // Term hover — show definition tooltip
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const handleOver = (e) => {
+      const el = e.target.closest('.term-highlight')
+      if (el?.dataset.termDef) {
+        const rect = el.getBoundingClientRect()
+        setTermTooltip({ x: rect.left + rect.width / 2, y: rect.top, definition: el.dataset.termDef, term: el.dataset.termText })
+      } else if (!e.target.closest('.term-highlight')) {
+        setTermTooltip(null)
+      }
+    }
+    const handleLeave = () => setTermTooltip(null)
+    container.addEventListener('mouseover', handleOver)
+    container.addEventListener('mouseleave', handleLeave)
+    return () => {
+      container.removeEventListener('mouseover', handleOver)
+      container.removeEventListener('mouseleave', handleLeave)
+    }
+  }, [])
 
   // Apply search highlights
   useEffect(() => {
@@ -286,7 +347,11 @@ export default function MarkdownRenderer({
   }, [tooltip])
 
   const handlePopoverSubmit = async (noteData) => {
-    await onAddNote({ ...popover.selectionData, ...noteData })
+    if (noteData.type === 'term') {
+      await onAddTerm?.({ term: popover.selectionData.selected_text, definition: noteData.definition })
+    } else {
+      await onAddNote({ ...popover.selectionData, ...noteData })
+    }
     setPopover(null)
   }
 
@@ -347,6 +412,16 @@ export default function MarkdownRenderer({
           style={{ top: noteHoverTooltip.y, left: noteHoverTooltip.x }}
         >
           {noteHoverTooltip.content}
+        </div>
+      )}
+
+      {termTooltip && (
+        <div
+          className={styles.termTooltip}
+          style={{ top: termTooltip.y, left: termTooltip.x }}
+        >
+          <div className={styles.termTooltipLabel}>{termTooltip.term}</div>
+          <div className={styles.termTooltipDef}>{termTooltip.definition}</div>
         </div>
       )}
     </div>

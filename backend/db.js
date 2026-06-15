@@ -30,9 +30,26 @@ db.exec(`
     color           TEXT NOT NULL DEFAULT 'yellow',
     created_at      TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS term_definitions (
+    id         TEXT PRIMARY KEY,
+    file_id    TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+    term       TEXT NOT NULL,
+    definition TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
 `)
 
 // Migrations — safe to run on every start
 try { db.exec(`ALTER TABLE inline_notes ADD COLUMN type TEXT NOT NULL DEFAULT 'note'`) } catch {}
+try { db.exec(`ALTER TABLE files ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`) } catch {}
+// Backfill sort_order for existing files using upload_date order
+try {
+  const rows = db.prepare(`SELECT id FROM files WHERE sort_order = 0 ORDER BY upload_date ASC`).all()
+  if (rows.length > 1) {
+    const update = db.prepare(`UPDATE files SET sort_order = ? WHERE id = ?`)
+    db.transaction((rows) => { rows.forEach((r, i) => update.run(i, r.id)) })(rows)
+  }
+} catch {}
 
 module.exports = db

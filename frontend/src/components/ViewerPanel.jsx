@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import * as filesApi from '../api/files'
 import { useNotes } from '../hooks/useNotes'
+import { useTerms } from '../hooks/useTerms'
 import MarkdownRenderer from './MarkdownRenderer'
 import TOCPanel from './TOCPanel'
 import NotesSidebar from './NotesSidebar'
@@ -33,6 +34,7 @@ export default function ViewerPanel({
   const hasCalledReachBottom = useRef(false)
   const passedHeadingIds = useRef(new Set())
   const { notes, addNote, editNote, removeNote } = useNotes(fileId, showToast)
+  const { terms, addTerm, editTerm, removeTerm } = useTerms(fileId, showToast)
 
   // Search state
   const [searchInput, setSearchInput] = useState('')
@@ -77,7 +79,7 @@ export default function ViewerPanel({
     const check = () => {
       const sideSpace = (panelsEl.clientWidth - wrapper.clientWidth) / 2
       setFloatToc(sideSpace >= 228)
-      setFloatNotes(sideSpace >= 288)
+      setFloatNotes(sideSpace >= 328)
     }
 
     check()
@@ -255,13 +257,14 @@ export default function ViewerPanel({
     onSetNotesOpen(true)
     const note = notes.find(n => n.id === noteId || n.id === Number(noteId))
     if (note?.type === 'question') setNotesTab('questions')
+    else if (note?.type === 'highlight') setNotesTab('highlights')
     else setNotesTab('notes')
     setPulseNoteId(noteId)
     setTimeout(() => setPulseNoteId(null), 700)
     setTimeout(() => {
       const mark = scrollRef.current?.querySelector(`[data-note-id="${noteId}"]`)
       if (mark) mark.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 50)
+    }, 250)
   }, [onSetNotesOpen, notes])
 
   const handleSearchNext = () => setCurrentMatch(i => (i + 1) % Math.max(1, searchMatchCount))
@@ -279,6 +282,7 @@ export default function ViewerPanel({
     notes, onEdit: editNote, onDelete: removeNote,
     onHoverNote: handleNoteHover, onClickNote: handleNoteClick,
     pulseNoteId, activeTab: notesTab, onTabChange: setNotesTab,
+    terms, onEditTerm: editTerm, onDeleteTerm: removeTerm,
   }
 
   // Empty panel
@@ -350,7 +354,11 @@ export default function ViewerPanel({
 
       {/* Body */}
       <div className={styles.body}>
-        {tocOpen && !floatToc && <TOCPanel items={tocItems} activeId={activeTocId} onItemClick={handleTOCClick} />}
+        {!floatToc && (
+          <div className={`${styles.tocWrap} ${tocOpen ? styles.tocWrapOpen : ''}`}>
+            <TOCPanel items={tocItems} activeId={activeTocId} onItemClick={handleTOCClick} />
+          </div>
+        )}
 
         <div ref={scrollWrapperRef} className={styles.scrollWrapper}>
           {/* Dim mode overlay + draggable threshold line */}
@@ -390,6 +398,7 @@ export default function ViewerPanel({
                 onNoteClick={handleNoteClick}
                 onNoteHover={handleNoteHover}
                 notesOpen={notesOpen}
+                notesTab={notesTab}
                 searchQuery={debouncedSearch}
                 searchVersion={searchVersion}
                 onSearchMatches={setSearchMatchCount}
@@ -398,22 +407,28 @@ export default function ViewerPanel({
                 onRendered={handleRendered}
                 wordCount={wordCount}
                 readTime={readTime}
+                terms={terms}
+                onAddTerm={addTerm}
               />
             )}
           </div>
         </div>
 
-        {notesOpen && !floatNotes && <NotesSidebar {...sidebarProps} />}
+        {!floatNotes && (
+          <div className={`${styles.notesWrap} ${notesOpen ? styles.notesWrapOpen : ''}`}>
+            <NotesSidebar {...sidebarProps} />
+          </div>
+        )}
       </div>
 
       {/* Floating sidebars */}
-      {tocOpen && floatToc && (
-        <div className={styles.floatLeft}>
+      {floatToc && (
+        <div className={`${styles.floatLeft} ${tocOpen ? styles.floatVisible : ''}`}>
           <TOCPanel items={tocItems} activeId={activeTocId} onItemClick={handleTOCClick} />
         </div>
       )}
-      {notesOpen && floatNotes && (
-        <div className={styles.floatRight}>
+      {floatNotes && (
+        <div className={`${styles.floatRight} ${notesOpen ? styles.floatVisible : ''}`}>
           <NotesSidebar {...sidebarProps} />
         </div>
       )}
