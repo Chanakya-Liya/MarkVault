@@ -48,3 +48,23 @@ Uploaded files and notes are stored in a SQLite database at `./data/markvault.db
 | Renderer | marked, highlight.js, DOMPurify     |
 | Backend  | Node.js, Express, better-sqlite3    |
 | Runtime  | Docker Compose                      |
+
+## Desktop app (Windows)
+
+MarkVault can also run as a standalone Windows app (Electron) that opens `.md` files straight from Explorer. Docker keeps working as before.
+
+Build the installer (requires Node.js):
+
+```bash
+cd desktop
+npm install --ignore-scripts
+node node_modules/electron/install.js
+npx electron-builder install-app-deps
+npm run dist
+```
+
+The installer is written to `desktop/dist/MarkVault Setup 1.0.0.exe`.
+
+- **Default app**: after installing, right-click any `.md` → Open with → Choose another app → MarkVault → tick "Always use this app" (or Settings → Apps → Default apps).
+- **Opening files**: a file opened from Explorer is added to the library and linked by path. Opening it again reuses the entry (notes stay attached) and refreshes its content from disk.
+- **Data**: stored in `%APPDATA%\MarkVault\markvault.db`. On first run the app offers to import your Docker `data/markvault.db`; File → Import library… does the same later.

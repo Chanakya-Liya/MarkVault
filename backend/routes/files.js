@@ -1,6 +1,6 @@
 const express = require('express')
-const { nanoid } = require('nanoid')
 const db = require('../db')
+const { insertFile } = require('../importPath')
 
 const router = express.Router()
 
@@ -18,15 +18,7 @@ router.post('/files', (req, res) => {
     const { name, content } = req.body
     if (!name || content === undefined) return res.status(400).json({ error: 'name and content required' })
 
-    const id = nanoid()
-    const upload_date = new Date().toISOString()
-    const size = Buffer.byteLength(content, 'utf8')
-    const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM files').get()
-    const sort_order = (maxOrder.m ?? -1) + 1
-
-    db.prepare('INSERT INTO files (id, name, content, upload_date, size, sort_order) VALUES (?, ?, ?, ?, ?, ?)').run(id, name, content, upload_date, size, sort_order)
-    const file = db.prepare('SELECT id, name, upload_date, size, sort_order FROM files WHERE id = ?').get(id)
-    res.status(201).json(file)
+    res.status(201).json(insertFile(name, content))
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

@@ -1,0 +1,75 @@
+{
+  "name": "markvault-desktop",
+  "version": "1.0.0",
+  "description": "MarkVault desktop app",
+  "author": "MarkVault",
+  "main": "main.js",
+  "scripts": {
+    "build:frontend": "npm --prefix ../frontend install && npm --prefix ../frontend run build",
+    "start": "npm run build:frontend && electron .",
+    "dist": "npm run build:frontend && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.5.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "nanoid": "^3.3.7"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.markvault.app",
+    "productName": "MarkVault",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!node_modules/**",
+          "!data/**",
+          "!Dockerfile",
+          "!package*.json"
+        ]
+      },
+      "!afterPack.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "fileAssociations": [
+      {
+        "ext": [
+          "md",
+          "markdown"
+        ],
+        "name": "Markdown Document",
+        "role": "Viewer",
+        "icon": "build/md.ico"
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "afterPack": "afterPack.js"
+  }
+}

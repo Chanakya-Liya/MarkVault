@@ -110,6 +110,18 @@ export default function App() {
     if (panel2FileId === fileId) setPanel2FileId(null)
   }, [removeFile, panel1FileId, panel2FileId])
 
+  // Desktop app: files opened from Explorer arrive over IPC (no-op in the browser)
+  useEffect(() => {
+    const bridge = window.markvault
+    if (!bridge) return
+    const openById = async (fileId) => {
+      await fetchFiles()
+      handleFileSelect(fileId)
+    }
+    bridge.getPendingFile().then(id => { if (id) openById(id) })
+    return bridge.onOpenFile(openById)
+  }, [fetchFiles, handleFileSelect])
+
   const handleUpload = useCallback((fileList) => {
     uploadFiles(fileList, files)
   }, [uploadFiles, files])

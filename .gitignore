@@ -33,3 +33,7 @@ desktop.ini
 
 .claude
 CLAUDE.md
+
+# Desktop app
+desktop/node_modules/
+desktop/dist/

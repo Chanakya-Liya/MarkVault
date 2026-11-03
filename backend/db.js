@@ -43,6 +43,7 @@ db.exec(`
 // Migrations — safe to run on every start
 try { db.exec(`ALTER TABLE inline_notes ADD COLUMN type TEXT NOT NULL DEFAULT 'note'`) } catch {}
 try { db.exec(`ALTER TABLE files ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`) } catch {}
+try { db.exec(`ALTER TABLE files ADD COLUMN source_path TEXT`) } catch {}
 // Backfill sort_order for existing files using upload_date order
 try {
   const rows = db.prepare(`SELECT id FROM files WHERE sort_order = 0 ORDER BY upload_date ASC`).all()
